@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TwinMac | Student Store</title>
+    <style>
+        :root { --primary: #10b981; --primary-hover: #059669; --bg: #f3f4f6; --surface: #ffffff; --text: #1f2937; --text-light: #6b7280; --border: #e5e7eb; --danger: #ef4444; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); }
+        
+        header { background: var(--surface); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 1rem;}
+        .logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); cursor: pointer; }
+        .search-bar { flex-grow: 1; max-width: 400px; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 99px; outline: none; }
+        .cart-toggle { background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; white-space: nowrap;}
+        
+        main { padding: 2rem 5%; max-width: 1200px; margin: 0 auto; }
+        #loading { text-align: center; color: var(--text-light); margin: 2rem 0; font-size: 1.1rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; }
+        
+        .card { background: var(--surface); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-4px); }
+        .card img { width: 100%; height: 200px; object-fit: cover; background: #eee; cursor: pointer; }
+        .card-body { padding: 1rem; display: flex; flex-direction: column; flex-grow: 1; }
+        .category { font-size: 0.75rem; text-transform: uppercase; color: var(--primary); font-weight: bold; letter-spacing: 0.05em; }
+        .title { font-size: 1.1rem; margin: 0.25rem 0; cursor: pointer; }
+        .title:hover { color: var(--primary); }
+        .desc { font-size: 0.85rem; color: var(--text-light); margin-bottom: 1rem; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; }
+        .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .price { font-size: 1.25rem; font-weight: bold; }
+        .btn-add { background: var(--text); color: white; border: none; padding: 0.75rem; border-radius: 6px; cursor: pointer; width: 100%; transition: background 0.2s; font-weight: bold;}
+        .btn-add:hover:not(:disabled) { background: #000; }
+        .btn-add:disabled { background: var(--border); color: var(--text-light); cursor: not-allowed; }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center; padding: 1rem; }
+        .modal-content { background: var(--surface); width: 100%; max-width: 600px; border-radius: 8px; padding: 2rem; max-height: 90vh; overflow-y: auto; position: relative;}
+        .close { position: absolute; right: 1.5rem; top: 1.5rem; cursor: pointer; font-size: 1.5rem; line-height: 1;}
+        
+        .carousel-container { position: relative; width: 100%; height: 300px; background: #f9fafb; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 1rem; }
+        .carousel-slide { width: 100%; height: 100%; display: none; justify-content: center; align-items: center; }
+        .carousel-slide.active { display: flex; }
+        .carousel-slide img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; font-size: 1.5rem; padding: 0.5rem 0.75rem; cursor: pointer; border-radius: 4px; z-index: 10; user-select: none; }
+        .carousel-btn.prev { left: 10px; }
+        .carousel-btn.next { right: 10px; }
+        .carousel-btn:hover { background: rgba(0,0,0,0.8); }
+
+        .detail-title { font-size: 1.5rem; margin-bottom: 0.5rem;}
+        .detail-desc { color: var(--text); margin-bottom: 1.5rem; line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; }
+
+        .cart-items { margin: 1.5rem 0; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+        .cart-item-card { display: flex; gap: 1rem; background: #f9fafb; padding: 0.75rem; border-radius: 6px; margin-bottom: 0.75rem; border: 1px solid var(--border); align-items: center; }
+        .cart-item-card img { width: 60px; height: 80px; object-fit: cover; border-radius: 4px; background: #eee; }
+        .cart-item-details { flex-grow: 1; }
+        .cart-item-title { font-weight: bold; font-size: 0.95rem; }
+        .cart-item-short { font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.25rem; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+        .cart-qty-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
+        .qty-btn { padding: 0.2rem 0.5rem; font-size: 0.85rem; border: 1px solid var(--border); background: white; cursor: pointer; font-weight: bold; border-radius: 4px; }
+        .qty-num { font-weight: bold; font-size: 0.9rem; min-width: 15px; text-align: center; }
+        .cart-item-price { font-weight: bold; font-size: 0.95rem; color: var(--text); margin-left: auto; text-align: right; }
+        .remove-cart-item { color: var(--danger); background: none; border: none; font-size: 0.8rem; cursor: pointer; text-decoration: underline; margin-top: 0.25rem; display: block; }
+
+        .add-more-link { display: block; text-align: center; margin: 1rem 0; color: var(--primary); font-weight: bold; text-decoration: none; cursor: pointer; }
+        .add-more-link:hover { text-decoration: underline; }
+
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem; }
+        .form-group input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; }
+        .btn-checkout { background: var(--primary); color: white; width: 100%; padding: 1rem; border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo" onclick="resetSearch()">TwinMac</div>
+    <input type="text" class="search-bar" id="search-input" placeholder="Search books, comics, notebooks, kits..." onkeyup="filterProducts()">
+    <button class="cart-toggle" onclick="toggleCart()">Cart (<span id="cart-count">0</span>) - ₹<span id="cart-total">0</span></button>
+</header>
+
+<main>
+    <div id="loading">Connecting to Google Sheets...</div>
+    <div class="grid" id="product-grid"></div>
+</main>
+
+<div id="detail-modal" class="modal">
+    <div class="modal-content" id="detail-content"></div>
+</div>
+
+<div id="checkout-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="toggleCart()">&times;</span>
+        <h2 style="margin-top:0; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Your Cart</h2>
+        
+        <div class="cart-items" id="cart-items-list"></div>
+        
+        <a class="add-more-link" onclick="toggleCart(); resetSearch();">Add More Products (Explore Store) &rarr;</a>
+        
+        <div style="font-weight: bold; font-size: 1.2rem; text-align: right; margin-bottom: 1.5rem; background: #f3f4f6; padding: 0.5rem 1rem; border-radius: 4px;">
+            Grand Total: ₹<span id="checkout-total">0</span>
+        </div>
+        
+        <form id="checkout-form">
+            <h3 style="margin-bottom:0.75rem; font-size:1rem; color:var(--text-light);">School Delivery Details</h3>
+            <div class="form-group"><label>Full Name</label><input type="text" id="s-name" required></div>
+            <div class="form-group"><label>Contact Number</label><input type="tel" id="s-contact" placeholder="Student or Parent Phone No." required></div>
+            <div class="form-group"><label>Roll Number</label><input type="text" id="s-roll" required></div>
+            <div class="form-group"><label>Class & Section (e.g. 9-B)</label><input type="text" id="s-class" required></div>
+            <div class="form-group"><label>Room No.</label><input type="text" id="s-room" required></div>
+            <button type="submit" class="btn-checkout">Confirm & Place Order</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // YOUR WEB APP URL IS HERE
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwpPrbndidj9uxH_X25K1L4p4DyH-3flK92tXE5l4n3vwBWTz4fp_yzB1cz_fTLK0S/exec";
+
+    let allProducts = [];
+    let cart = [];
+    let currentSlideIndex = 0;
+
+    async function loadProducts() {
+        try {
+            const response = await fetch(SCRIPT_URL + "?action=getProducts");
+            allProducts = await response.json();
+            document.getElementById('loading').style.display = 'none';
+            renderProducts(allProducts);
+        } catch (error) {
+            document.getElementById('loading').innerText = "Error syncing datastore configurations.";
+        }
+    }
+
+    function renderProducts(productsToRender) {
+        const grid = document.getElementById('product-grid');
+        grid.innerHTML = '';
+        
+        if(productsToRender.length === 0) {
+            grid.innerHTML = "<p style='grid-column: 1/-1; text-align:center; color: var(--text-light);'>No products found matching query parameters.</p>";
+            return;
+        }
+
+        productsToRender.forEach(p => {
+            if(!p.title) return;
+            const images = p.image ? p.image.split(',') : ['https://via.placeholder.com/300x200?text=No+Image'];
+            const coverImage = images[0].trim();
+            const isOutOfStock = p.stock <= 0;
+            
+            grid.innerHTML += `
+                <div class="card">
+                    <img src="${coverImage}" alt="${p.title}" onclick="showDetails('${p.id}')">
+                    <div class="card-body">
+                        <span class="category">${p.category}</span>
+                        <h3 class="title" onclick="showDetails('${p.id}')">${p.title}</h3>
+                        <p class="desc">${parseFormat(p.desc)}</p>
+                        <div class="price-row">
+                            <span class="price">₹${p.price}</span>
+                            <span style="font-size:0.85rem; font-weight:bold; color:${isOutOfStock ? 'red' : 'var(--primary)'}">${isOutOfStock ? 'Out of Stock' : p.stock + ' left'}</span>
+                        </div>
+                        <button class="btn-add" onclick="addToCart('${p.id}')" ${isOutOfStock ? 'disabled' : ''}>
+                            ${isOutOfStock ? 'Unavailable' : 'Add to Cart'}
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function parseFormat(text) {
+        if (!text) return '';
+        return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    }
+
+    function filterProducts() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const filtered = allProducts.filter(p => p.title.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
+        renderProducts(filtered);
+    }
+
+    function resetSearch() {
+        document.getElementById('search-input').value = '';
+        renderProducts(allProducts);
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function showDetails(id) {
+        const p = allProducts.find(x => x.id === id);
+        if(!p) return;
+
+        const images = p.image ? p.image.split(',') : ['https://via.placeholder.com/300x200?text=No+Image'];
+        const isOutOfStock = p.stock <= 0;
+        currentSlideIndex = 0;
+
+        let carouselSlidesHtml = images.map((img, idx) => `
+            <div class="carousel-slide ${idx === 0 ? 'active' : ''}">
+                <img src="${img.trim()}" alt="Slider Visual">
+            </div>
+        `).join('');
+
+        let navigationControls = images.length > 1 ? `
+            <button class="carousel-btn prev" onclick="changeSlide(-1)">&10094;</button>
+            <button class="carousel-btn next" onclick="changeSlide(1)">&10095;</button>
+        ` : '';
+
+        document.getElementById('detail-content').innerHTML = `
+            <span class="close" onclick="closeDetails()">&times;</span>
+            <div class="category" style="margin-top:0.5rem;">${p.category}</div>
+            <h2 class="detail-title">${p.title}</h2>
+            
+            <div class="carousel-container">
+                ${carouselSlidesHtml}
+                ${navigationControls}
+            </div>
+            
+            <div class="detail-desc">${parseFormat(p.desc)}</div>
+            <div class="price-row" style="border-top:1px solid var(--border); padding-top:1rem;">
+                <span class="price" style="font-size: 1.6rem;">₹${p.price}</span>
+                <span style="font-weight:bold;">${isOutOfStock ? '<span style="color:red">Out of Stock</span>' : p.stock + ' available'}</span>
+            </div>
+            <button class="btn-checkout" onclick="addToCart('${p.id}'); closeDetails();" ${isOutOfStock ? 'disabled' : ''}>
+                ${isOutOfStock ? 'Unavailable' : 'Add to Cart - ₹' + p.price}
+            </button>
+        `;
+        document.getElementById('detail-modal').style.display = 'flex';
+    }
+
+    function changeSlide(direction) {
+        const slides = document.querySelectorAll('.carousel-slide');
+        if(slides.length === 0) return;
+        slides[currentSlideIndex].classList.remove('active');
+        currentSlideIndex = (currentSlideIndex + direction + slides.length) % slides.length;
+        slides[currentSlideIndex].classList.add('active');
+    }
+
+    function closeDetails() { document.getElementById('detail-modal').style.display = 'none'; }
+
+    function addToCart(id) {
+        const p = allProducts.find(x => x.id === id);
+        if(!p) return;
+
+        const existingItem = cart.find(item => item.id === id);
+        if (existingItem) {
+            if (existingItem.quantity >= 4) {
+                alert("Maximum threshold configurations reached (Max 4 units per item matched).");
+                return;
+            }
+            existingItem.quantity += 1;
+        } else {
+            const images = p.image ? p.image.split(',') : ['https://via.placeholder.com/300x200?text=No+Image'];
+            cart.push({ id: p.id, title: p.title, price: Number(p.price), image: images[0].trim(), desc: p.desc, quantity: 1 });
+        }
+        updateCartUI();
+    }
+
+    function updateQty(id, delta) {
+        const item = cart.find(x => x.id === id);
+        if(!item) return;
+        item.quantity += delta;
+        if(item.quantity < 1) item.quantity = 1;
+        if(item.quantity > 4) {
+            alert("Maximum allowable limit matched (4).");
+            item.quantity = 4;
+        }
+        updateCartUI();
+    }
+
+    function removeCartItem(id) {
+        cart = cart.filter(item => item.id !== id);
+        updateCartUI();
+    }
+
+    function updateCartUI() {
+        let totalCount = 0;
+        let grandTotal = 0;
+        
+        const list = document.getElementById('cart-items-list');
+        list.innerHTML = '';
+
+        cart.forEach(item => {
+            totalCount += item.quantity;
+            let itemTotal = item.price * item.quantity;
+            grandTotal += itemTotal;
+
+            list.innerHTML += `
+                <div class="cart-item-card">
+                    <img src="${item.image}" alt="Cover image representation">
+                    <div class="cart-item-details">
+                        <div class="cart-item-title">${item.title}</div>
+                        <div class="cart-item-short">${item.desc}</div>
+                        <div class="cart-qty-row">
+                            <button class="qty-btn" onclick="updateQty('${item.id}', -1)">-</button>
+                            <span class="qty-num">${item.quantity}</span>
+                            <button class="qty-btn" onclick="updateQty('${item.id}', 1)">+</button>
+                            <button class="remove-cart-item" onclick="removeCartItem('${item.id}')">Remove</button>
+                        </div>
+                    </div>
+                    <div class="cart-item-price">₹${itemTotal}</div>
+                </div>
+            `;
+        });
+
+        document.getElementById('cart-count').innerText = totalCount;
+        document.getElementById('cart-total').innerText = grandTotal;
+        document.getElementById('checkout-total').innerText = grandTotal;
+    }
+
+    function toggleCart() {
+        const modal = document.getElementById('checkout-modal');
+        if (modal.style.display === 'flex') modal.style.display = 'none';
+        else {
+            if (cart.length === 0) { alert("Your cart is empty!"); return; }
+            modal.style.display = 'flex';
+        }
+    }
+
+    document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.querySelector('.btn-checkout');
+        btn.innerText = "Transmitting order array..."; btn.disabled = true;
+
+        const orderId = 'TM-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+        const itemsSummary = cart.map(i => `${i.title} (x${i.quantity})`).join(", ");
+        const grandTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        const payload = {
+            action: "addOrder", orderId: orderId,
+            name: document.getElementById('s-name').value,
+            contact: document.getElementById('s-contact').value,
+            roll: document.getElementById('s-roll').value,
+            classSec: document.getElementById('s-class').value,
+            room: document.getElementById('s-room').value,
+            items: itemsSummary, total: grandTotal, cartData: cart
+        };
+
+        try {
+            await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+            alert(`Order Placed Success!\nYour Order Tracking ID is: ${orderId}\nPayment is collected at room location.`);
+            cart = []; updateCartUI(); toggleCart(); loadProducts(); document.getElementById('checkout-form').reset();
+        } catch (error) { alert("Data stream connectivity interruption."); } 
+        finally { btn.innerText = "Confirm & Place Order"; btn.disabled = false; }
+    });
+
+    loadProducts();
+</script>
+</body>
+</html>
