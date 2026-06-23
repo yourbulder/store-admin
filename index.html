@@ -146,7 +146,6 @@
 </div>
 
 <script>
-    // WEB APP URL
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwpPrbndidj9uxH_X25K1L4p4DyH-3flK92tXE5l4n3vwBWTz4fp_yzB1cz_fTLK0S/exec";
     let adminProducts = [];
 
@@ -176,7 +175,7 @@
             title: document.getElementById('p-title').value, desc: document.getElementById('p-desc').value,
             price: document.getElementById('p-price').value, stock: document.getElementById('p-stock').value,
             category: document.getElementById('p-category').value, image: document.getElementById('p-img').value,
-            crossPrice: document.getElementById('p-cross').value // Captured cross price
+            crossPrice: document.getElementById('p-cross').value
         };
 
         try {
@@ -219,7 +218,6 @@
 
     function renderInventory(items) {
         document.getElementById('inventory-body').innerHTML = items.filter(p => p.title).map(p => {
-            // Build the pricing display
             let displayPrice = `₹${p.price}`;
             if (p.crossPrice && Number(p.crossPrice) > Number(p.price)) {
                 displayPrice = `<strong>₹${p.price}</strong> <br><del style="color:#9ca3af; font-size:0.8rem;">₹${p.crossPrice}</del>`;
@@ -252,7 +250,7 @@
         document.getElementById('e-title').value = p.title;
         document.getElementById('e-desc').value = p.desc;
         document.getElementById('e-price').value = p.price;
-        document.getElementById('e-cross').value = p.crossPrice || ''; // Populate cross price
+        document.getElementById('e-cross').value = p.crossPrice || ''; 
         document.getElementById('e-stock').value = p.stock;
         document.getElementById('e-category').value = p.category;
         document.getElementById('e-img').value = p.image;
@@ -271,7 +269,7 @@
             title: document.getElementById('e-title').value, desc: document.getElementById('e-desc').value,
             price: document.getElementById('e-price').value, stock: document.getElementById('e-stock').value,
             category: document.getElementById('e-category').value, image: document.getElementById('e-img').value,
-            crossPrice: document.getElementById('e-cross').value // Captured edit cross price
+            crossPrice: document.getElementById('e-cross').value 
         };
 
         try {
