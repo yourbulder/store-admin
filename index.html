@@ -24,7 +24,7 @@
         .content { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; }
         .content.active { display: block; }
         
-        .form-panel { background: var(--surface); padding: 2rem; border-radius: 8px; max-width: 600px; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);}
+        .form-panel { background: var(--surface); padding: 2rem; border-radius: 8px; max-width: 700px; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);}
         .form-group { margin-bottom: 1rem; }
         .form-group label { font-size: 0.85rem; font-weight: bold;}
         .help-text { font-size: 0.75rem; color: #6b7280; display: block; margin-top: 0.25rem; }
@@ -76,12 +76,15 @@
                 <div class="form-group"><label>Title</label><input type="text" id="p-title" required></div>
                 <div class="form-group">
                     <label>Description (Maintains layout spaces & line breaks)</label>
-                    <textarea id="p-desc" rows="5" placeholder="Supports line breaks. Use **text** for bolding words." required></textarea>
+                    <textarea id="p-desc" rows="4" placeholder="Supports line breaks. Use **text** for bolding words." required></textarea>
                 </div>
-                <div style="display:flex; gap:1rem;">
-                    <div class="form-group" style="flex:1;"><label>Price (₹)</label><input type="number" id="p-price" required></div>
-                    <div class="form-group" style="flex:1;"><label>Stock Qty</label><input type="number" id="p-stock" required></div>
+                
+                <div style="display:flex; gap:1rem; background: #f9fafb; padding: 1rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex:1; margin-bottom:0;"><label>Selling Price (₹)</label><input type="number" id="p-price" required></div>
+                    <div class="form-group" style="flex:1; margin-bottom:0;"><label>Cross Price / MRP (₹)</label><input type="number" id="p-cross" placeholder="Optional original price"></div>
+                    <div class="form-group" style="flex:1; margin-bottom:0;"><label>Stock Qty</label><input type="number" id="p-stock" required></div>
                 </div>
+
                 <div class="form-group">
                     <label>Category</label>
                     <select id="p-category"><option>Book</option><option>Comic</option><option>Notebook</option><option>Kit</option></select>
@@ -101,7 +104,7 @@
             <input type="text" class="search-input" id="admin-search" placeholder="Search inventory..." onkeyup="filterInventory()">
         </div>
         <table>
-            <thead><tr><th>Title</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Title</th><th>Category</th><th>Pricing Config</th><th>Stock</th><th>Actions</th></tr></thead>
             <tbody id="inventory-body"><tr><td colspan="5">Loading inventory logs...</td></tr></tbody>
         </table>
     </div>
@@ -121,11 +124,14 @@
         <form id="edit-form">
             <input type="hidden" id="e-id">
             <div class="form-group"><label>Title</label><input type="text" id="e-title" required></div>
-            <div class="form-group"><label>Description Layout</label><textarea id="e-desc" rows="5" required></textarea></div>
-            <div style="display:flex; gap:1rem;">
-                <div class="form-group" style="flex:1;"><label>Price (₹)</label><input type="number" id="e-price" required></div>
-                <div class="form-group" style="flex:1;"><label>Stock</label><input type="number" id="e-stock" required></div>
+            <div class="form-group"><label>Description Layout</label><textarea id="e-desc" rows="4" required></textarea></div>
+            
+            <div style="display:flex; gap:1rem; background: #f9fafb; padding: 1rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
+                <div class="form-group" style="flex:1; margin-bottom:0;"><label>Selling Price (₹)</label><input type="number" id="e-price" required></div>
+                <div class="form-group" style="flex:1; margin-bottom:0;"><label>Cross Price (₹)</label><input type="number" id="e-cross"></div>
+                <div class="form-group" style="flex:1; margin-bottom:0;"><label>Stock</label><input type="number" id="e-stock" required></div>
             </div>
+
             <div class="form-group">
                 <label>Category</label>
                 <select id="e-category"><option>Book</option><option>Comic</option><option>Notebook</option><option>Kit</option></select>
@@ -169,7 +175,8 @@
             id: 'PROD-' + Math.random().toString(36).substr(2, 5).toUpperCase(),
             title: document.getElementById('p-title').value, desc: document.getElementById('p-desc').value,
             price: document.getElementById('p-price').value, stock: document.getElementById('p-stock').value,
-            category: document.getElementById('p-category').value, image: document.getElementById('p-img').value
+            category: document.getElementById('p-category').value, image: document.getElementById('p-img').value,
+            crossPrice: document.getElementById('p-cross').value // Captured cross price
         };
 
         try {
@@ -211,18 +218,26 @@
     }
 
     function renderInventory(items) {
-        document.getElementById('inventory-body').innerHTML = items.filter(p => p.title).map(p => `
+        document.getElementById('inventory-body').innerHTML = items.filter(p => p.title).map(p => {
+            // Build the pricing display
+            let displayPrice = `₹${p.price}`;
+            if (p.crossPrice && Number(p.crossPrice) > Number(p.price)) {
+                displayPrice = `<strong>₹${p.price}</strong> <br><del style="color:#9ca3af; font-size:0.8rem;">₹${p.crossPrice}</del>`;
+            }
+
+            return `
             <tr>
                 <td style="font-weight:bold;">${p.title}</td>
                 <td><span style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">${p.category}</span></td>
-                <td>₹${p.price}</td>
+                <td>${displayPrice}</td>
                 <td><strong>${p.stock} units</strong></td>
                 <td>
                     <button class="btn-action btn-edit" onclick="openEditModal('${p.id}')">Modify</button>
                     <button class="btn-action btn-danger" onclick="deleteProduct('${p.id}')">Delete</button>
                 </td>
             </tr>
-        `).join('') || "<tr><td colspan='5' style='text-align:center;'>No catalog item rows found.</td></tr>";
+            `;
+        }).join('') || "<tr><td colspan='5' style='text-align:center;'>No catalog item rows found.</td></tr>";
     }
 
     function filterInventory() {
@@ -237,6 +252,7 @@
         document.getElementById('e-title').value = p.title;
         document.getElementById('e-desc').value = p.desc;
         document.getElementById('e-price').value = p.price;
+        document.getElementById('e-cross').value = p.crossPrice || ''; // Populate cross price
         document.getElementById('e-stock').value = p.stock;
         document.getElementById('e-category').value = p.category;
         document.getElementById('e-img').value = p.image;
@@ -254,7 +270,8 @@
             action: "editProduct", id: document.getElementById('e-id').value,
             title: document.getElementById('e-title').value, desc: document.getElementById('e-desc').value,
             price: document.getElementById('e-price').value, stock: document.getElementById('e-stock').value,
-            category: document.getElementById('e-category').value, image: document.getElementById('e-img').value
+            category: document.getElementById('e-category').value, image: document.getElementById('e-img').value,
+            crossPrice: document.getElementById('e-cross').value // Captured edit cross price
         };
 
         try {
