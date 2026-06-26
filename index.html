@@ -3,48 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TwinMac | Secure Admin Terminal</title>
+    <title>TwinMac | Admin Terminal</title>
     <style>
-        :root { --primary: #1f2937; --accent: #10b981; --bg: #f3f4f6; --surface: #ffffff; --border: #e5e7eb; --danger: #ef4444; --edit: #3b82f6;}
+        /* LIGHT & DARK MODE VARIABLES */
+        :root { 
+            --primary: #10b981; --accent: #10b981; 
+            --bg: #f3f4f6; --surface: #ffffff; 
+            --border: #e5e7eb; --text: #1f2937; --text-light: #6b7280;
+            --danger: #ef4444; --edit: #3b82f6; --cancel: #f59e0b;
+        }
+        body.dark-mode {
+            --bg: #111827; --surface: #1f2937; 
+            --text: #f9fafb; --text-light: #9ca3af; 
+            --border: #374151; 
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: var(--bg); color: var(--primary); }
+        body { background-color: var(--bg); color: var(--text); transition: 0.3s;}
         
         #auth-screen { display: flex; height: 100vh; justify-content: center; align-items: center; }
-        .auth-box { background: var(--surface); padding: 2.5rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width:100%; }
-        .auth-box input, .form-group input, .form-group select, .form-group textarea { width: 100%; margin-top: 0.5rem; padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; font-size: 1rem; }
+        .auth-box { background: var(--surface); padding: 2.5rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width:100%; transition: 0.3s;}
+        
+        input, select, textarea { width: 100%; margin-top: 0.5rem; padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; font-size: 1rem; background: var(--bg); color: var(--text); transition: 0.3s;}
+        
         .btn-primary { background: var(--accent); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 1rem; width:100%;}
         
         #dashboard { display: none; }
-        header { background: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items:center;}
+        header { background: #0f172a; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items:center;}
+        .header-actions { display: flex; gap: 1rem; align-items: center;}
         header button { background: transparent; border: 1px solid white; color: white; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+        .theme-toggle { border-radius: 50%; width: 35px; height: 35px; display:flex; align-items:center; justify-content:center; padding:0;}
         
-        .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; }
-        .tab { padding: 1rem; cursor: pointer; font-weight: bold; color: #6b7280; border-bottom: 2px solid transparent;}
+        .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; transition: 0.3s;}
+        .tab { padding: 1rem; cursor: pointer; font-weight: bold; color: var(--text-light); border-bottom: 2px solid transparent;}
         .tab.active { border-bottom: 2px solid var(--accent); color: var(--accent); }
         .content { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; }
         .content.active { display: block; }
         
-        .form-panel { background: var(--surface); padding: 2rem; border-radius: 8px; max-width: 700px; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);}
+        .form-panel { background: var(--surface); padding: 2rem; border-radius: 8px; max-width: 700px; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: 0.3s;}
         .form-group { margin-bottom: 1rem; }
         .form-group label { font-size: 0.85rem; font-weight: bold;}
-        .help-text { font-size: 0.75rem; color: #6b7280; display: block; margin-top: 0.25rem; }
-        
+        .help-text { font-size: 0.75rem; color: var(--text-light); display: block; margin-top: 0.25rem; }
+        .bestseller-hint { background: rgba(245, 158, 11, 0.1); color: #b45309; padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; margin-top: 0.5rem; border: 1px solid rgba(245, 158, 11, 0.3);}
+        body.dark-mode .bestseller-hint { color: #fcd34d; }
+
         .controls-row { display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;}
-        .search-input { padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; width: 300px; }
+        .search-input { padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; width: 300px; margin-top:0;}
         
-        table { width: 100%; border-collapse: collapse; background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;}
+        table { width: 100%; border-collapse: collapse; background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; transition: 0.3s;}
         th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top;}
-        th { background: #f9fafb; font-size: 0.85rem; text-transform: uppercase; color: #6b7280; }
+        th { background: var(--bg); font-size: 0.85rem; text-transform: uppercase; color: var(--text-light); }
         
         .btn-action { padding: 0.4rem 0.8rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; color: white; font-weight:bold;}
         .btn-danger { background: var(--danger); }
         .btn-edit { background: var(--edit); margin-right: 0.5rem;}
+        .btn-view { background: #6366f1; padding: 0.5rem 1rem;}
         
-        .order-desc-text { font-size: 0.85rem; background:#f9fafb; padding:0.5rem; border-radius:4px; border:1px solid var(--border); white-space:pre-wrap; }
-
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; padding: 1rem; z-index: 1000;}
-        .modal-content { background: var(--surface); width: 100%; max-width: 600px; border-radius: 8px; padding: 2rem; position: relative; max-height:90vh; overflow-y:auto;}
-        .close-modal { position: absolute; right: 1.5rem; top: 1.5rem; cursor: pointer; font-size: 1.5rem; line-height: 1;}
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; padding: 1rem; z-index: 1000; backdrop-filter: blur(2px);}
+        .modal-content { background: var(--surface); width: 100%; max-width: 600px; border-radius: 8px; padding: 2rem; position: relative; max-height:90vh; overflow-y:auto; transition: 0.3s;}
+        .close-modal { position: absolute; right: 1.5rem; top: 1.5rem; cursor: pointer; font-size: 1.5rem; line-height: 1; color: var(--text-light);}
+        .close-modal:hover { color: var(--text); }
+        
+        .order-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: var(--bg); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.95rem; border: 1px solid var(--border); }
+        .order-items-container { margin-bottom: 1.5rem; max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; }
+        .order-item-row { display: flex; gap: 1rem; align-items: center; padding: 0.75rem; border-bottom: 1px solid var(--border); }
+        .order-item-row:last-child { border-bottom: none; }
+        .order-item-row img { width: 50px; height: 65px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
+        .action-buttons-row { display: flex; gap: 1rem; justify-content: space-between; margin-top: 1.5rem; }
+        .action-buttons-row button { flex: 1; padding: 0.8rem; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: opacity 0.2s;}
+        .action-buttons-row button:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -60,7 +87,10 @@
 <div id="dashboard">
     <header>
         <h2>TwinMac Management Panel</h2>
-        <button onclick="location.reload()">End Session</button>
+        <div class="header-actions">
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-icon">🌙</button>
+            <button onclick="location.reload()">End Session</button>
+        </div>
     </header>
     
     <div class="tabs">
@@ -75,11 +105,12 @@
             <form id="add-form">
                 <div class="form-group"><label>Title</label><input type="text" id="p-title" required></div>
                 <div class="form-group">
-                    <label>Description (Maintains layout spaces & line breaks)</label>
+                    <label>Description</label>
                     <textarea id="p-desc" rows="4" placeholder="Supports line breaks. Use **text** for bolding words." required></textarea>
+                    <div class="bestseller-hint">💡 <strong>Pro Tip:</strong> Type <code>[bestseller]</code> anywhere in this box to automatically show a Gold Bestseller badge on the student website!</div>
                 </div>
                 
-                <div style="display:flex; gap:1rem; background: #f9fafb; padding: 1rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
+                <div style="display:flex; gap:1rem; background: var(--bg); padding: 1rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
                     <div class="form-group" style="flex:1; margin-bottom:0;"><label>Selling Price (₹)</label><input type="number" id="p-price" required></div>
                     <div class="form-group" style="flex:1; margin-bottom:0;"><label>Cross Price / MRP (₹)</label><input type="number" id="p-cross" placeholder="Optional original price"></div>
                     <div class="form-group" style="flex:1; margin-bottom:0;"><label>Stock Qty</label><input type="number" id="p-stock" required></div>
@@ -110,13 +141,15 @@
     </div>
 
     <div id="tab-orders" class="content">
+        <!-- User Requested: No Search Bar here -->
         <table>
-            <thead><tr><th>Order ID</th><th>Student Information</th><th>Delivery Coordinates</th><th>Items Ordered</th><th>Total</th><th>Management Action</th></tr></thead>
-            <tbody id="orders-body"><tr><td colspan="6">Polling live orders...</td></tr></tbody>
+            <thead><tr><th>Order ID</th><th>Student Information</th><th>Delivery Room</th><th>Total Amount</th><th>Action</th></tr></thead>
+            <tbody id="orders-body"><tr><td colspan="5">Polling live orders...</td></tr></tbody>
         </table>
     </div>
 </div>
 
+<!-- INVENTORY EDIT MODAL -->
 <div id="edit-modal" class="modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeEditModal()">&times;</span>
@@ -124,9 +157,13 @@
         <form id="edit-form">
             <input type="hidden" id="e-id">
             <div class="form-group"><label>Title</label><input type="text" id="e-title" required></div>
-            <div class="form-group"><label>Description Layout</label><textarea id="e-desc" rows="4" required></textarea></div>
+            <div class="form-group">
+                <label>Description Layout</label>
+                <textarea id="e-desc" rows="4" required></textarea>
+                <div class="bestseller-hint">💡 <strong>Pro Tip:</strong> Add <code>[bestseller]</code> in this box to activate the Bestseller badge.</div>
+            </div>
             
-            <div style="display:flex; gap:1rem; background: #f9fafb; padding: 1rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
+            <div style="display:flex; gap:1rem; background: var(--bg); padding: 1rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
                 <div class="form-group" style="flex:1; margin-bottom:0;"><label>Selling Price (₹)</label><input type="number" id="e-price" required></div>
                 <div class="form-group" style="flex:1; margin-bottom:0;"><label>Cross Price (₹)</label><input type="number" id="e-cross"></div>
                 <div class="form-group" style="flex:1; margin-bottom:0;"><label>Stock</label><input type="number" id="e-stock" required></div>
@@ -145,9 +182,53 @@
     </div>
 </div>
 
+<!-- DETAILED ORDER VIEWER MODAL -->
+<div id="order-modal" class="modal">
+    <div class="modal-content" style="max-width: 650px;">
+        <span class="close-modal" onclick="closeOrderModal()">&times;</span>
+        <h2 style="margin-top:0; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem;" id="o-modal-title">Order Details</h2>
+
+        <div class="order-detail-grid">
+            <div><strong style="color:var(--text-light); font-size:0.8rem; display:block;">STUDENT NAME</strong> <span id="o-modal-name"></span></div>
+            <div><strong style="color:var(--text-light); font-size:0.8rem; display:block;">CONTACT NUMBER</strong> <span id="o-modal-contact"></span></div>
+            <div><strong style="color:var(--text-light); font-size:0.8rem; display:block;">CLASS & SEC</strong> <span id="o-modal-class"></span></div>
+            <div><strong style="color:var(--text-light); font-size:0.8rem; display:block;">ROLL NUMBER</strong> <span id="o-modal-roll"></span></div>
+            <div><strong style="color:var(--text-light); font-size:0.8rem; display:block;">DELIVERY ROOM</strong> <span id="o-modal-room"></span></div>
+            <div><strong style="color:var(--text-light); font-size:0.8rem; display:block;">GRAND TOTAL</strong> <span id="o-modal-total" style="font-weight:bold; color:var(--primary); font-size: 1.1rem;"></span></div>
+        </div>
+
+        <h4 style="margin-bottom:0.5rem; color:var(--text-light);">ITEMS TO PACK:</h4>
+        <div class="order-items-container" id="o-modal-items"></div>
+
+        <div class="action-buttons-row" id="o-modal-actions">
+            <button style="background: var(--cancel);" onclick="processOrderAction('cancel')">Cancel Order</button>
+            <button style="background: var(--danger);" onclick="processOrderAction('delete')">Delete Record</button>
+            <button style="background: var(--primary);" onclick="processOrderAction('complete')">Complete Order</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwpPrbndidj9uxH_X25K1L4p4DyH-3flK92tXE5l4n3vwBWTz4fp_yzB1cz_fTLK0S/exec";
+    
     let adminProducts = [];
+    let adminOrders = [];
+    let currentViewedOrder = null;
+
+    // THEME LOGIC
+    function initTheme() {
+        if (localStorage.getItem('twinmac_admin_theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('theme-icon').innerText = '☀️';
+        }
+    }
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem('twinmac_admin_theme', isDark ? 'dark' : 'light');
+        document.getElementById('theme-icon').innerText = isDark ? '☀️' : '🌙';
+    }
+    initTheme();
 
     function login() {
         if(document.getElementById('pin').value === '9811353658') {
@@ -192,27 +273,8 @@
             renderInventory(adminProducts);
 
             const ordRes = await fetch(SCRIPT_URL + "?action=getOrders");
-            const orders = await ordRes.json();
-            
-            document.getElementById('orders-body').innerHTML = orders.filter(o => o.orderId).map(o => `
-                <tr>
-                    <td><span style="background:#fef3c7; color:#92400e; padding:4px 8px; border-radius:12px; font-weight:bold; font-size:0.8rem;">${o.orderId}</span></td>
-                    <td>
-                        <strong>${o.name}</strong><br>
-                        <span style="font-size:0.8rem;color:#4b5563">Contact: <strong>${o.contact || 'N/A'}</strong></span><br>
-                        <span style="font-size:0.8rem;color:#6b7280">Roll Ref: ${o.roll}</span>
-                    </td>
-                    <td>
-                        <strong>Room: ${o.room}</strong><br>
-                        <span style="font-size:0.8rem;color:#6b7280">Class: ${o.classSec}</span>
-                    </td>
-                    <td><div class="order-desc-text">${o.items}</div></td>
-                    <td><strong>₹${o.total}</strong></td>
-                    <td>
-                        <button class="btn-action btn-danger" onclick="deleteOrder('${o.orderId}')">Complete / Delete</button>
-                    </td>
-                </tr>
-            `).join('') || "<tr><td colspan='6' style='text-align:center;'>No active logs found inside structural layout.</td></tr>";
+            adminOrders = await ordRes.json();
+            renderOrders(adminOrders);
         } catch(e) { console.error("Data pipeline connectivity error."); }
     }
 
@@ -220,15 +282,29 @@
         document.getElementById('inventory-body').innerHTML = items.filter(p => p.title).map(p => {
             let displayPrice = `₹${p.price}`;
             if (p.crossPrice && Number(p.crossPrice) > Number(p.price)) {
-                displayPrice = `<strong>₹${p.price}</strong> <br><del style="color:#9ca3af; font-size:0.8rem;">₹${p.crossPrice}</del>`;
+                displayPrice = `<strong>₹${p.price}</strong> <br><del style="color:var(--text-light); font-size:0.8rem;">₹${p.crossPrice}</del>`;
+            }
+
+            // LOW STOCK ALERT LOGIC
+            let stockDisplay = `<strong>${p.stock} units</strong>`;
+            if (p.stock > 0 && p.stock <= 3) {
+                stockDisplay = `<strong style="color: var(--danger); font-size: 1rem;">${p.stock} units (Low!)</strong>`;
+            } else if (p.stock <= 0) {
+                stockDisplay = `<strong style="color: var(--danger);">Out of Stock</strong>`;
+            }
+
+            // Show star if it is marked bestseller
+            let titleDisplay = p.title;
+            if(p.desc && p.desc.toLowerCase().includes('[bestseller]')) {
+                titleDisplay = `★ ${p.title}`;
             }
 
             return `
             <tr>
-                <td style="font-weight:bold;">${p.title}</td>
-                <td><span style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">${p.category}</span></td>
+                <td style="font-weight:bold;">${titleDisplay}</td>
+                <td><span style="background:rgba(3, 105, 161, 0.1); color:#0ea5e9; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">${p.category}</span></td>
                 <td>${displayPrice}</td>
-                <td><strong>${p.stock} units</strong></td>
+                <td>${stockDisplay}</td>
                 <td>
                     <button class="btn-action btn-edit" onclick="openEditModal('${p.id}')">Modify</button>
                     <button class="btn-action btn-danger" onclick="deleteProduct('${p.id}')">Delete</button>
@@ -238,9 +314,30 @@
         }).join('') || "<tr><td colspan='5' style='text-align:center;'>No catalog item rows found.</td></tr>";
     }
 
+    function renderOrders(ordersToRender) {
+        document.getElementById('orders-body').innerHTML = ordersToRender.filter(o => o.orderId).map(o => `
+            <tr>
+                <td><span style="background:rgba(217, 119, 6, 0.1); color:#d97706; padding:4px 8px; border-radius:12px; font-weight:bold; font-size:0.8rem;">${o.orderId}</span></td>
+                <td>
+                    <strong>${o.name}</strong><br>
+                    <span style="font-size:0.8rem;color:var(--text-light)">Contact: <strong>${o.contact || 'N/A'}</strong></span>
+                </td>
+                <td><strong>Room: ${o.room}</strong><br><span style="font-size:0.8rem;color:var(--text-light)">Class: ${o.classSec}</span></td>
+                <td><strong>₹${o.total}</strong></td>
+                <td>
+                    <button class="btn-action btn-view" onclick="openOrderModal('${o.orderId}')">View Details</button>
+                </td>
+            </tr>
+        `).join('') || "<tr><td colspan='5' style='text-align:center;'>No active orders match your search.</td></tr>";
+    }
+
     function filterInventory() {
         const query = document.getElementById('admin-search').value.toLowerCase();
-        renderInventory(adminProducts.filter(p => p.title.toLowerCase().includes(query)));
+        const filtered = adminProducts.filter(p => 
+            (p.title && String(p.title).toLowerCase().includes(query)) ||
+            (p.category && String(p.category).toLowerCase().includes(query))
+        );
+        renderInventory(filtered);
     }
 
     function openEditModal(id) {
@@ -287,13 +384,85 @@
         } catch (e) { alert("Failed operation."); }
     }
 
-    async function deleteOrder(orderId) {
-        if(!confirm(`Archive and permanently delete Order Ref ${orderId}?`)) return;
+    function openOrderModal(orderId) {
+        const order = adminOrders.find(o => o.orderId === orderId);
+        if (!order) return;
+        currentViewedOrder = order;
+
+        document.getElementById('o-modal-title').innerText = "Order Reference: " + order.orderId;
+        document.getElementById('o-modal-name').innerText = order.name;
+        document.getElementById('o-modal-contact').innerText = order.contact || 'N/A';
+        document.getElementById('o-modal-class').innerText = order.classSec;
+        document.getElementById('o-modal-roll').innerText = order.roll;
+        document.getElementById('o-modal-room').innerText = order.room;
+        document.getElementById('o-modal-total').innerText = "₹" + order.total;
+
+        const itemsContainer = document.getElementById('o-modal-items');
+        itemsContainer.innerHTML = '';
+
+        const itemStrings = order.items.split(", ");
+        itemStrings.forEach(itemStr => {
+            const match = itemStr.match(/(.*) \(x(\d+)\)$/);
+            if (match) {
+                const title = match[1];
+                const qty = match[2];
+                const matchedProduct = adminProducts.find(p => p.title.trim() === title.trim());
+                
+                const imgUrl = matchedProduct && matchedProduct.image ? matchedProduct.image.split(',')[0].trim() : 'https://via.placeholder.com/60x80?text=No+Image';
+
+                itemsContainer.innerHTML += `
+                    <div class="order-item-row">
+                        <img src="${imgUrl}" alt="Product">
+                        <div>
+                            <div style="font-weight:bold; font-size:0.95rem; margin-bottom:0.2rem;">${title}</div>
+                            <div style="font-size:0.85rem; background:var(--bg); display:inline-block; padding:0.1rem 0.5rem; border-radius:12px; font-weight:bold; border: 1px solid var(--border);">Quantity: ${qty}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                itemsContainer.innerHTML += `<div class="order-item-row"><div style="font-weight:bold;">${itemStr}</div></div>`;
+            }
+        });
+
+        document.getElementById('order-modal').style.display = 'flex';
+    }
+
+    function closeOrderModal() { document.getElementById('order-modal').style.display = 'none'; }
+
+    async function processOrderAction(actionType) {
+        if (!currentViewedOrder) return;
+        
+        let confirmMsg = "";
+        let successMsg = "";
+
+        if (actionType === 'complete') {
+            confirmMsg = "Mark this order as DELIVERED and clear it from active tracking?";
+            successMsg = "Success! Order has been fulfilled.";
+        } else if (actionType === 'cancel') {
+            confirmMsg = "Are you sure you want to CANCEL this order? (Student will not receive items)";
+            successMsg = "Order has been cancelled and removed.";
+        } else if (actionType === 'delete') {
+            confirmMsg = "Permanently DELETE this order record from the system?";
+            successMsg = "Order record wiped.";
+        }
+
+        if(!confirm(confirmMsg)) return;
+
+        const btnRow = document.getElementById('o-modal-actions');
+        btnRow.style.opacity = '0.5';
+        btnRow.style.pointerEvents = 'none';
+
         try {
-            const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "deleteProduct", id: orderId }) });
-            alert("Order completed and successfully wiped from Sheet!");
+            await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "deleteProduct", id: currentViewedOrder.orderId }) });
+            alert(successMsg);
+            closeOrderModal();
             loadAdminData();
-        } catch (e) { alert("Failed tracking removal."); }
+        } catch (e) { 
+            alert("Failed tracking removal. Check connection."); 
+        } finally {
+            btnRow.style.opacity = '1';
+            btnRow.style.pointerEvents = 'auto';
+        }
     }
 </script>
 </body>
